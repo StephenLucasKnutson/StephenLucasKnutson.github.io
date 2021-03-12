@@ -162,12 +162,18 @@ class AppComponent {
     }
     start() {
         this.canvas = new fabric__WEBPACK_IMPORTED_MODULE_0__["fabric"].Canvas('the-canvas', { selection: false });
-        this.canvas.setDimensions({ width: this.background.getScaledWidth(), height: this.background.getScaledHeight() });
+        const screenWidth = (window.innerWidth > 0) ? window.innerWidth : screen.width;
+        const screenHeight = (window.innerHeight > 0) ? window.innerHeight : screen.height;
+        const widthRatio = screenWidth / AppComponent.BOUNDS.x;
+        const heightRatio = screenHeight / AppComponent.BOUNDS.y;
+        const aspectRatio = Math.min(widthRatio, heightRatio);
+        this.canvas.setDimensions({ width: AppComponent.BOUNDS.x * aspectRatio, height: AppComponent.BOUNDS.y * aspectRatio });
+        this.canvas.setZoom(aspectRatio);
         this.scoreObject = new fabric__WEBPACK_IMPORTED_MODULE_0__["fabric"].Text('', {
             fontSize: 36,
             originX: 'right',
             originY: 'top',
-            left: this.canvas.getWidth() - 10,
+            left: AppComponent.BOUNDS.x - 10,
             top: 10,
             fontFamily: 'Octarine_Bold',
             stroke: 'black',
@@ -178,10 +184,10 @@ class AppComponent {
             fontSize: 72,
             originX: 'center',
             originY: 'center',
-            left: this.canvas.getWidth() / 2,
-            top: this.canvas.getHeight() / 2 - 100,
+            left: AppComponent.BOUNDS.x / 2,
+            top: AppComponent.BOUNDS.y / 2 - 100,
             fill: '#FFB101',
-            width: this.canvas.getWidth(),
+            width: AppComponent.BOUNDS.x,
             height: 500,
             textAlign: 'center',
             stroke: 'black',
@@ -191,8 +197,8 @@ class AppComponent {
         this.restartButton = new fabric__WEBPACK_IMPORTED_MODULE_0__["fabric"].Rect({
             originX: 'center',
             originY: 'center',
-            left: this.canvas.getWidth() / 2,
-            top: this.canvas.getHeight() / 2,
+            left: AppComponent.BOUNDS.x / 2,
+            top: AppComponent.BOUNDS.y / 2,
             width: 400,
             height: 80,
             fill: 'white',
@@ -210,8 +216,8 @@ class AppComponent {
             fontSize: 36,
             originX: 'center',
             originY: 'center',
-            left: this.canvas.getWidth() / 2,
-            top: this.canvas.getHeight() / 2,
+            left: AppComponent.BOUNDS.x / 2,
+            top: AppComponent.BOUNDS.y / 2,
             fontFamily: 'Octarine_Bold',
             width: 400,
             height: 80,
@@ -265,7 +271,7 @@ class AppComponent {
                         this.lastSpawnTime = currentTime;
                         const flower = new fabric__WEBPACK_IMPORTED_MODULE_0__["fabric"].Image(this.flowerImage);
                         this.setupObject(flower);
-                        flower.set('left', this.canvas.getWidth());
+                        flower.set('left', AppComponent.BOUNDS.x);
                         flower.scaleX = 0.2;
                         flower.scaleY = 0.4;
                         if (Math.random() < 0.5) {
@@ -273,13 +279,11 @@ class AppComponent {
                             flower.top = Math.random() * -250;
                         }
                         else {
-                            flower.top = this.canvas.getHeight() - flower.getScaledHeight() + Math.random() * 250;
+                            flower.top = AppComponent.BOUNDS.y - flower.getScaledHeight() + Math.random() * 250;
                         }
                         this.flowers.push(flower);
                         this.canvas.add(flower);
                     }
-                    const collisionCanvas = document.getElementById('collision-canvas');
-                    const ctx = collisionCanvas.getContext('2d');
                     this.flowers = this.flowers.filter(flower => {
                         const good = flower.left > -300;
                         if (!good) {
@@ -289,12 +293,13 @@ class AppComponent {
                     });
                     this.beeGroup.setCoords();
                     const system = new detect_collisions__WEBPACK_IMPORTED_MODULE_2__["Collisions"]();
-                    const beeCenter = this.beeGroup.getCenterPoint();
+                    const bbBee = this.beeGroup.getBoundingRect(true);
+                    const beeCenter = new fabric__WEBPACK_IMPORTED_MODULE_0__["fabric"].Point(bbBee.left + bbBee.width / 2, bbBee.top + bbBee.height / 2);
                     const beeBB = system.createCircle(beeCenter.x, beeCenter.y + 14, 25);
                     this.flowers.forEach(flower => {
                         flower.set('left', flower.get('left') - 2);
                         flower.setCoords();
-                        const bb = flower.getBoundingRect(false);
+                        const bb = flower.getBoundingRect(true);
                         if (flower.flipY) {
                             system.createCircle(bb.left + bb.width / 2, bb.top + bb.height - 50, 40);
                             system.createPolygon(bb.left + bb.width / 2, bb.top + bb.height - 60, [[-10, 0], [10, 0], [10, -bb.height], [-10, -bb.height]]);
@@ -304,14 +309,24 @@ class AppComponent {
                             system.createPolygon(bb.left + bb.width / 2, bb.top + 60, [[-10, 0], [10, 0], [10, bb.height], [-10, bb.height]]);
                         }
                     });
-                    system.createPolygon(0, 0, [[0, 0], [this.canvas.getWidth(), 0], [this.canvas.getWidth(), 2], [0, 2]]);
-                    system.createPolygon(0, this.canvas.getHeight(), [[0, 0], [this.canvas.getWidth(), 0], [this.canvas.getWidth(), 2], [0, 2]]);
+                    system.createPolygon(0, 0, [[0, 0], [AppComponent.BOUNDS.x, 0], [AppComponent.BOUNDS.x, 2], [0, 2]]);
+                    system.createPolygon(0, AppComponent.BOUNDS.y, [[0, 0], [AppComponent.BOUNDS.x, 0], [AppComponent.BOUNDS.x, 2], [0, 2]]);
                     system.update();
-                    /*ctx.clearRect(0, 0, 800, 600);
-                    ctx.strokeStyle = '#FF0000';
-                    ctx.beginPath();
-                    system.draw(ctx);
-                    ctx.stroke();*/
+                    if (AppComponent.COLLISION_DEBUG) {
+                        const collisionCanvas = document.getElementById('collision-canvas');
+                        collisionCanvas.width = this.canvas.getWidth();
+                        collisionCanvas.height = this.canvas.getHeight();
+                        const ctx = collisionCanvas.getContext('2d');
+                        ctx.clearRect(0, 0, collisionCanvas.width, collisionCanvas.height);
+                        ctx.save();
+                        const t = this.canvas.viewportTransform;
+                        ctx.transform(t[0], t[1], t[2], t[3], t[4], t[5]);
+                        ctx.strokeStyle = '#FF0000';
+                        ctx.beginPath();
+                        system.draw(ctx);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
                     beeBB.potentials().forEach(potential => {
                         if (beeBB.collides(potential)) {
                             this.switchState(State.After);
@@ -345,12 +360,12 @@ class AppComponent {
     switchState(to) {
         switch (to) {
             case State.Card:
-                this.beeGroup.set('left', this.canvas.getWidth() / 2 - this.beeGroup.getScaledWidth() / 2);
+                this.beeGroup.set('left', AppComponent.BOUNDS.x / 2 - this.beeGroup.getScaledWidth() / 2);
                 this.beeGroup.set('top', 320);
                 this.signature.set('originX', 'right');
                 this.signature.set('originY', 'bottom');
-                this.signature.set('left', this.canvas.getWidth() - 10);
-                this.signature.set('top', this.canvas.getHeight() - 10);
+                this.signature.set('left', AppComponent.BOUNDS.x - 10);
+                this.signature.set('top', AppComponent.BOUNDS.y - 10);
                 this.restartButton.set('visible', false);
                 this.restartButtonText.set('visible', false);
                 this.wingDown.set('visible', true);
@@ -360,7 +375,7 @@ class AppComponent {
                 this.canvas.remove(...this.flowers);
                 this.flowers = [];
                 this.beeGroup.set('left', 30);
-                this.beeGroup.set('top', this.canvas.getHeight() / 2);
+                this.beeGroup.set('top', AppComponent.BOUNDS.y / 2);
                 this.birthdayMessage.set('visible', false);
                 this.scoreObject.set('visible', true);
                 this.startTime = performance.now();
@@ -379,6 +394,8 @@ class AppComponent {
         this.state = to;
     }
 }
+AppComponent.COLLISION_DEBUG = true;
+AppComponent.BOUNDS = new fabric__WEBPACK_IMPORTED_MODULE_0__["fabric"].Point(800, 600);
 AppComponent.ɵfac = function AppComponent_Factory(t) { return new (t || AppComponent)(); };
 AppComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdefineComponent"]({ type: AppComponent, selectors: [["app-root"]], decls: 3, vars: 0, consts: [["id", "the-canvas"], ["id", "collision-canvas", "width", "800", "height", "600"]], template: function AppComponent_Template(rf, ctx) { if (rf & 1) {
         _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵelementStart"](0, "div");
