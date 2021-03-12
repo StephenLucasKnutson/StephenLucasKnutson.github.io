@@ -394,10 +394,10 @@ class AppComponent {
         this.state = to;
     }
 }
-AppComponent.COLLISION_DEBUG = true;
+AppComponent.COLLISION_DEBUG = false;
 AppComponent.BOUNDS = new fabric__WEBPACK_IMPORTED_MODULE_0__["fabric"].Point(800, 600);
 AppComponent.ɵfac = function AppComponent_Factory(t) { return new (t || AppComponent)(); };
-AppComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdefineComponent"]({ type: AppComponent, selectors: [["app-root"]], decls: 3, vars: 0, consts: [["id", "the-canvas"], ["id", "collision-canvas", "width", "800", "height", "600"]], template: function AppComponent_Template(rf, ctx) { if (rf & 1) {
+AppComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵdefineComponent"]({ type: AppComponent, selectors: [["app-root"]], decls: 3, vars: 0, consts: [["id", "the-canvas"], ["id", "collision-canvas"]], template: function AppComponent_Template(rf, ctx) { if (rf & 1) {
         _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵelementStart"](0, "div");
         _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵelement"](1, "canvas", 0);
         _angular_core__WEBPACK_IMPORTED_MODULE_3__["ɵɵelement"](2, "canvas", 1);
