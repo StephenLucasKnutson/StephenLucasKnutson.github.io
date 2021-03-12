@@ -307,11 +307,11 @@ class AppComponent {
                     system.createPolygon(0, 0, [[0, 0], [this.canvas.getWidth(), 0], [this.canvas.getWidth(), 2], [0, 2]]);
                     system.createPolygon(0, this.canvas.getHeight(), [[0, 0], [this.canvas.getWidth(), 0], [this.canvas.getWidth(), 2], [0, 2]]);
                     system.update();
-                    ctx.clearRect(0, 0, 800, 600);
+                    /*ctx.clearRect(0, 0, 800, 600);
                     ctx.strokeStyle = '#FF0000';
                     ctx.beginPath();
                     system.draw(ctx);
-                    ctx.stroke();
+                    ctx.stroke();*/
                     beeBB.potentials().forEach(potential => {
                         if (beeBB.collides(potential)) {
                             this.switchState(State.After);
